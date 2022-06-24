@@ -5,28 +5,37 @@ import './Player.css'
 export default class Player extends React.Component {
   constructor(props) {
     super(props)
+    
     this.id = String(props.id)
     this.title = String(props.title)
     this.URL = String(props.URL)
+    this.peaks = props.peaks
+
     this.pause = require('./icons/pause.png')
     this.play = require('./icons/play.png')
+
+    // Если пики не предоставлены, генерируем их с помощью Web Audio API
+    this.backend = this.peaks ? 'MediaElement' : 'WebAudio'
+
     this.state = {
       playing: false,
       icon: this.play,
-      time: '00:00'
+      time: '00:00',
+      peaks: null
     }
   }
-
-  componentDidMount() {
+    
+  async componentDidMount() {
+      
     this.waveform = WaveSurfer.create({
       barWidth: 1,
-      barRadius: 1,
-      barGap: 2,
+      barRadius: 3,
+      barGap: 3,
       barMinHeight: 1,
       partialRender: true,
       pixelRatio: 1,
       container: document.getElementById(this.id),
-      backend: 'WebAudio',
+      backend: this.backend,
       scrollParent: false,
       height: 80,
       progressColor: '#c6a827',
@@ -37,9 +46,11 @@ export default class Player extends React.Component {
       waveColor: '#EFEFEF',
       cursorColor: 'transparent'
     })
-    
-    // Загрузка аудио
-    this.waveform.load(this.URL)
+   
+    // Загрузка аудио.
+    // Для мгновенной отрисовки в качестве 
+    // второго параметра - полученные заранее пики.
+    this.waveform.load(this.URL, this.peaks)
     // Событие по заваершению проигрывания
     this.onFinishEvent()
     // Событие обновления таймера
