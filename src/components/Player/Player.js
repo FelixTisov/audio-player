@@ -20,8 +20,7 @@ export default class Player extends React.Component {
     this.state = {
       playing: false,
       icon: this.play,
-      time: '00:00',
-      peaks: null
+      time: '00:00'
     }
   }
     
