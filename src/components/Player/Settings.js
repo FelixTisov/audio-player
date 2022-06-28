@@ -1,4 +1,4 @@
-export function settings (id, backend) {
+export function settings (container, backend) {
 
     const preset = {
         barWidth: 1,
@@ -7,7 +7,7 @@ export function settings (id, backend) {
         barMinHeight: 1,
         partialRender: true,
         pixelRatio: 1,
-        container: document.getElementById(id),
+        container: container,
         backend: backend,
         scrollParent: false,
         height: 80,

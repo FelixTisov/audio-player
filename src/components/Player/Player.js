@@ -3,7 +3,7 @@ import WaveSurfer from 'wavesurfer.js'
 import { settings } from './Settings'
 import './Player.css'
 
-const Player = ({ id, title, URL, peaks }) => {
+const Player = ({ title, URL, peaks }) => {
 
   const pause = require('./icons/pause.png')
   const play = require('./icons/play.png')
@@ -18,6 +18,9 @@ const Player = ({ id, title, URL, peaks }) => {
   const icon = useRef({})
   const time = useRef()
 
+  // Контейнер для аудиодорожки
+  const container = useRef()
+
   useEffect(() => {
 
     // Если waveform уже была создана, сначала удаляем её, 
@@ -26,7 +29,7 @@ const Player = ({ id, title, URL, peaks }) => {
       waveform.current.destroy()
 
     // Конфигуратор wavesurfer для отрисовки аудиодорожки
-    waveform.current = WaveSurfer.create(settings(id, backend))
+    waveform.current = WaveSurfer.create(settings(container.current, backend))
 
     // Загрузка аудио.
     // Для мгновенной отрисовки в качестве 
@@ -108,7 +111,7 @@ const Player = ({ id, title, URL, peaks }) => {
         </div>
         <div className="audio-player__body">
           <div className="WaveformContianer">
-            <div className='wave' id={id} />
+            <div className='wave' ref={container}/>
           </div>
         </div>
         <div className="audio-player__footer">
