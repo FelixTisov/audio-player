@@ -1,112 +1,123 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import WaveSurfer from 'wavesurfer.js'
+import { settings } from './Settings'
 import './Player.css'
 
-export default class Player extends React.Component {
-  constructor(props) {
-    super(props)
-    
-    this.id = String(props.id)
-    this.title = String(props.title)
-    this.URL = String(props.URL)
-    this.peaks = props.peaks
+const Player = ({ id, title, URL, peaks }) => {
 
-    this.pause = require('./icons/pause.png')
-    this.play = require('./icons/play.png')
+  const pause = require('./icons/pause.png')
+  const play = require('./icons/play.png')
+  const defIcon = play
 
-    // Если пики не предоставлены, генерируем их с помощью Web Audio API
-    this.backend = this.peaks ? 'MediaElement' : 'WebAudio'
+  const backend = peaks ? 'MediaElement' : 'WebAudio'
 
-    this.state = {
-      playing: false,
-      icon: this.play,
-      time: '00:00'
-    }
-  }
-    
-  async componentDidMount() {
-      
-    this.waveform = WaveSurfer.create({
-      barWidth: 1,
-      barRadius: 3,
-      barGap: 3,
-      barMinHeight: 1,
-      partialRender: true,
-      pixelRatio: 1,
-      container: document.getElementById(this.id),
-      backend: this.backend,
-      scrollParent: false,
-      height: 80,
-      progressColor: '#c6a827',
-      normalize: true,
-      responsive: true,
-      fillParent: true,
-      hideScrollbar: true,
-      waveColor: '#EFEFEF',
-      cursorColor: 'transparent'
-    })
-   
+  const waveform = useRef(null)
+  const isLoaded = useRef(false)
+
+  const playing = useRef(false)
+  const icon = useRef({})
+  const time = useRef()
+
+  useEffect(() => {
+
+    // Если waveform уже была создана, сначала удаляем её, 
+    // чтобы она не дублировалась
+    if(waveform.current)
+      waveform.current.destroy()
+
+    // Конфигуратор wavesurfer для отрисовки аудиодорожки
+    waveform.current = WaveSurfer.create(settings(id, backend))
+
     // Загрузка аудио.
     // Для мгновенной отрисовки в качестве 
     // второго параметра - полученные заранее пики.
-    this.waveform.load(this.URL, this.peaks)
-    // Событие по заваершению проигрывания
-    this.onFinishEvent()
+    waveform.current.load(URL, peaks)
+
+    // Событие по завершении загрузки waveform
+    onWaveFormLoaded()
+
+    // Событие по заваершении проигрывания
+    onFinishEvent()
+
     // Событие обновления таймера
-    this.waveform.on('audioprocess', this.updateTimer.bind(this))
+    onTimerUpdatedEvent()
 
-  }
+  })
 
-  updateTimer() {
-    let seconds = this.waveform.getCurrentTime()
-    seconds = Math.floor(seconds)
-    var h = Math.floor(seconds / 3600)
-    var m = Math.floor((seconds - (h * 3600)) / 60)
-    var s = seconds - (h * 3600) - (m * 60)
-
-    // Форматирование под hh:mm:ss
-    h = (h < 10) ? '0' + h : h
-    m = (m < 10) ? '0' + m : m
-    s = (s < 10) ? '0' + s : s
-
-    this.setState({time: `${m}:${s}`})
-  }
-
-  onFinishEvent() {
-    this.waveform.on('finish', () => {
-      this.setState({playing: false})
-      this.setState({icon: this.play})
+  function onWaveFormLoaded() {
+    waveform.current.on('ready', () => {
+      isLoaded.current = true
     })
   }
+  
+  function onFinishEvent() {
+      waveform.current.on('finish', () => {
+        playing.current = false
+        icon.current.src = play
+      })
+  }
 
+  function onTimerUpdatedEvent() {
+    waveform.current.on('audioprocess', () => {
+
+      const toHours = 3600
+      const toMins = 60
+
+      let seconds = waveform.current.getCurrentTime()
+      seconds = Math.floor(seconds)
+      let h = Math.floor(seconds / toHours)
+      let m = Math.floor((seconds - (h * toHours)) / toMins)
+      let s = seconds - (h * toHours) - (m * toMins)
+  
+      // Форматирование под hh:mm:ss
+      h = (h < 10) ? '0' + h : h
+      m = (m < 10) ? '0' + m : m
+      s = (s < 10) ? '0' + s : s
+  
+      time.current.innerText = `${m}:${s}`
+      
+    })
+  }
+  
   // Обработчик кнопки Play/Pause
-  handlePlay = () => {
-    this.setState({playing: !this.state.playing})
-    this.state.playing ? this.setState({icon: this.play}) : this.setState({icon: this.pause})
-    this.waveform.playPause()
+  function handlePlay() {
+
+    playing.current = !playing.current
+    playing.current ? icon.current.src = pause : icon.current.src = play
+
+    if(isLoaded.current) {    
+      waveform.current.playPause()
+    } 
+    else {
+      // Ждём, когда загрузится аудиодорожка 
+      // и начинаем воспроизведение
+      waveform.current.on('ready', () => {
+        waveform.current.playPause()
+      })
+    }  
+
   }
 
-  render() {
-    return (
+  return(
       <div className="audio-player__wrapper">
-          <div className="audio-player__header">
-              <button onClick={this.handlePlay} className='audio-player__button'>
-                <img className='audio-player__img' src={this.state.icon} alt='Play/Pause'></img>
-              </button>
-              <span className='audio-player__header-text'>{this.title}</span>
+        <div className="audio-player__header">
+            <button onClick={handlePlay} className='audio-player__button'>
+              <img className='audio-player__img' ref={icon} src={defIcon} alt='Play/Pause'></img>
+            </button>
+            <div className='audio-player__header-text'>{title}</div>
+        </div>
+        <div className="audio-player__body">
+          <div className="WaveformContianer">
+            <div className='wave' id={id} />
           </div>
-          <div className="audio-player__body">
-            <div className="WaveformContianer">
-              <div className='wave' id={this.id} />
-            </div>
-          </div>
-          <div className="audio-player__footer">
-              <div className='audio-player__timer'>{this.state.time}</div>
-              <a className='audio-player__link' href={this.URL}>
-                {`Download ${this.title}`}</a>
-          </div>
-      </div>
-    )
-  }
-
+        </div>
+        <div className="audio-player__footer">
+            <span className='audio-player__timer' ref={time}>00:00</span>
+            <a className='audio-player__link' href={URL}>
+              {`Download ${title}`}</a>
+        </div>
+    </div>
+  )
 }
+
+export default Player
