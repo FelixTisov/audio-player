@@ -24,3 +24,5 @@ export function settings (container, backend) {
 }
 
 export default settings
+
+// Подробнее о настройках: https://wavesurfer-js.org/docs/options.html

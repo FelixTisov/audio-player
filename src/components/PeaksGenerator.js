@@ -1,25 +1,33 @@
 import extractPeaks from "webaudio-peaks"
 
-const URL = "https://s.lalal.ai/music/home/Lets_Call_it_by_LawrenceTrailer_cut_vocals_split_by_lalalai_phoenix.mp3"
-
+const defaultURL = "https://s.lalal.ai/music/home/Lets_Call_it_by_LawrenceTrailer_cut_vocals_split_by_lalalai_phoenix.mp3"
 
 // Генерация пиков из аудиофайла
-async function getPeaksArray() {
+export async function getPeaksArray({ URL = defaultURL }) {
+
     const response = await fetch(URL);
     const arrayBuffer = await response.arrayBuffer();
-    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const audioCtx = new AudioContext();
+
     audioCtx.decodeAudioData(arrayBuffer, function (decodedData) {
 
-      let peaks = extractPeaks(decodedData, 10000, true);
+      // Количество сэмплов для расчёта одного пика.
+      // 10000 сэмплов = 700 пиков
+      const samplesPerPixel = 10000 
+      // Объединение всех каналов
+      const isMono = true
+      let peaks = extractPeaks(decodedData, samplesPerPixel, isMono);
 
-      let array = []
+      let decodedPeaks = []
       for(let i = 0; i < peaks.data[0].length-1 ; i++)
-        array.push(peaks.data[0][i])
+        decodedPeaks.push(peaks.data[0][i])
 
-      console.log('Peaks: '+ array)
-
-      return array
+      return decodedPeaks
     })
+
 }
 
 export default getPeaksArray
+
+// Подробнее: https://github.com/naomiaro/webaudio-peaks
