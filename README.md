@@ -1,26 +1,25 @@
 # Player.js
-Компонент аудиоплеера. Для построения аудиодорожки используется WaveSurfer. В качестве пропсов принимает три параметра:
+An audio player component. WaveSurfer.js is used to visualize the audio track in Canvas. The component takes 3 parameters as props: 
 
 ### `title`
 
-Название трека.
+The title of a track.
 
 ### `URL`
 
-Ссылка на аудиофайл.
+The audio file link.
 
 ### `peaks`
 
-Массив с сгенерированными заранее пиками аудиофайла.
-Если пиков нет, они генерируются с помощью Web Audio API.
+An array with pre-generated peaks of an audio file.
+If there are no peaks, they are generated via Web Audio API.
 
 
 # PeaksGenerator.js
-Извлечение пиков из аудиофайла. В качестве пропсов принимает один параметр:
+Extracts peaks from an audio file. It takes 1 parameter:
 
 ### `URL`
 
-Ссылка на аудиофайл.
+The audio file link.
 
-
-Возвращвает массив сгенерированных пиков.
+It returns an array of generated peaks.
