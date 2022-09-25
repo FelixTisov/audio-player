@@ -23,3 +23,7 @@ Extracts peaks from an audio file. It takes 1 parameter:
 The audio file link.
 
 It returns an array of generated peaks.
+
+# Start Locally
+1. Install all the dependencies. Use: `npm install`
+2. Use `npm start` to start locally at localhost
